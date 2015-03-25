@@ -25,8 +25,7 @@ dk
 
 """
 
-
-def train2(sources_info, classifier='PLCA', win=(5,12), iters=25, 
+def train(sources_info, classifier='PLCA', win=(5,12), iters=25, 
     feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann', 
     priors=None, verbose=True):
 
@@ -164,7 +163,7 @@ def train2(sources_info, classifier='PLCA', win=(5,12), iters=25,
 
     return sources
 
-def fit2(mix_info, sources, classifier='PLCA', win=(5,12), iters=25, 
+def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25, 
     feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann', 
     priors=None, verbose=True):
 
@@ -338,7 +337,7 @@ def fit2(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
 
     return sources, residual, mix
 
-def resynth_source2(s, classifier='PLCA', mix=None):
+def resynth_source(s, classifier='PLCA', mix=None):
 
     # init classifier and window
     if classifier == 'PLCA':
@@ -377,7 +376,7 @@ def resynth_source2(s, classifier='PLCA', mix=None):
 
     return y
 
-def write2(sources, classifier='PLCA', mix=None):
+def write(sources, classifier='PLCA', mix=None):
 
     # create save folder
     foldername = 'test'
@@ -390,13 +389,13 @@ def write2(sources, classifier='PLCA', mix=None):
         print '\nresynthesizing s{0}, {1}...'.format(si, s.name)
 
         # call resynth on source
-        y = resynth_source2(s, classifier=classifier, mix=mix)
+        y = resynth_source(s, classifier=classifier, mix=mix)
 
         # write to disk
         filename = foldername + '/s{0}-{1}.wav'.format(si, s.name)
         wavwrite((np.array([y[0],y[1]])).transpose(), filename, s.sr) # FUCKING: hardcoded channels
 
-def write_info2(sources_info, mix_info, params):
+def write_info(sources_info, mix_info, params):
 
     # create save folder
     foldername = 'test'
