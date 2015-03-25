@@ -25,16 +25,42 @@ dk
 
 """
 
-#-----------------------------------------------------------------------------#
 
-def train(sources_info, iters=50, feature='stft', nfft=8096, wfft=8096, 
-    nhop=4096, window='hann', verbose=True):
+def train2(sources_info, classifier='PLCA', win=(5,12), iters=25, 
+    feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann', 
+    priors=None, verbose=True):
 
     """Train.
 
     blah blah blah
 
     """
+
+    #-------------------------------------------#
+
+    """initialize."""
+
+    # init classifier and window
+    if classifier == 'PLCA':
+        classifier = PLCA
+        win = None
+    elif classifier == 'SIPLCA':
+        classifier = SIPLCA
+        win = win[0]
+    elif classifier == 'SIPLCA2':
+        classifier = SIPLCA2
+        win = win
+    else:
+        raise NameError('So sorry but I didn\'t recognize that classifier. ' \
+            'Supported classifiers are \'PLCA\', \'SIPLCA\', and \'SIPLCA2\'.')
+
+    # tell me about it
+    if verbose: 
+        print '\nTRAINING!'
+        print 'classifier: {0}'.format(classifier)
+        print 'window: {0}'.format(win)
+        print 'iters: {0}'.format(iters)
+        print 'feature: {0}'.format(feature)
 
     # list of sources
     sources = []
@@ -129,7 +155,8 @@ def train(sources_info, iters=50, feature='stft', nfft=8096, wfft=8096,
 
             s.train[ci].w, s.train[ci].z, s.train[ci].h, \
             s.train[ci].n, s.train[ci].r, s.train[ci].l = \
-                PLCA.analyze(s.F[ci].X, s.num_components, niter=iters)
+                classifier.analyze(s.F[ci].X, s.num_components, niter=iters, 
+                    win=win, **priors)
     
     #-------------------------------------------#
 
@@ -137,17 +164,41 @@ def train(sources_info, iters=50, feature='stft', nfft=8096, wfft=8096,
 
     return sources
 
-
-#-----------------------------------------------------------------------------#
-
-def fit(mix_info, sources, iters=50, feature='stft', nfft=8096, wfft=8096, 
-    nhop=4096, window='hann', verbose=True):
+def fit2(mix_info, sources, classifier='PLCA', win=(5,12), iters=25, 
+    feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann', 
+    priors=None, verbose=True):
 
     """Fit.
 
     blah blah blah
 
     """
+
+    #-------------------------------------------#
+
+    """initialize."""
+
+    # init classifier and window
+    if classifier == 'PLCA':
+        classifier = PLCA
+        win = None
+    elif classifier == 'SIPLCA':
+        classifier = SIPLCA
+        win = win[0]
+    elif classifier == 'SIPLCA2':
+        classifier = SIPLCA2
+        win = win
+    else:
+        raise NameError('So sorry but I didn\'t recognize that classifier. ' \
+            'Supported classifiers are \'PLCA\', \'SIPLCA\', and \'SIPLCA2\'.')
+
+    # tell me about it
+    if verbose: 
+        print '\nFITTING!'
+        print 'classifier: {0}'.format(classifier)
+        print 'window: {0}'.format(win)
+        print 'iters: {0}'.format(iters)
+        print 'feature: {0}'.format(feature)
 
     #-------------------------------------------#
 
@@ -232,7 +283,7 @@ def fit(mix_info, sources, iters=50, feature='stft', nfft=8096, wfft=8096,
 
         # all source w's concatenated
         W_trained = np.concatenate([s.train[ci].w for s in sources if 
-            s.num_components > 0],1)
+            s.num_components > 0], axis=1)
 
         # do not update the source components but do update the mix components
         W_update = [False] * sum([s.num_components for s in sources]) + \
@@ -243,8 +294,8 @@ def fit(mix_info, sources, iters=50, feature='stft', nfft=8096, wfft=8096,
 
         mix.fit[ci].w, mix.fit[ci].z, mix.fit[ci].h, \
             mix.fit[ci].n, mix.fit[ci].r, mix.fit[ci].l = \
-            PLCA.analyze(mix.F[ci].X, total_num_components, niter=iters, 
-                initW=W_trained, updateW=W_update)
+            classifier.analyze(mix.F[ci].X, total_num_components, niter=iters, 
+                initW=W_trained, updateW=W_update, win=win, **priors)
 
     #-------------------------------------------#
 
@@ -278,15 +329,27 @@ def fit(mix_info, sources, iters=50, feature='stft', nfft=8096, wfft=8096,
             s.fit[ci].z = mix.fit[ci].z[i:j]
             s.fit[ci].h = mix.fit[ci].h[i:j,:]
 
+            # w and h will have extra dims for SIPLA and 
+            # SIPLCA2 but we don'thave to change the code
+
     #-------------------------------------------#
 
     """return."""
 
     return sources, residual, mix
 
-#-----------------------------------------------------------------------------#
+def resynth_source2(s, classifier='PLCA', mix=None):
 
-def resynth_source(s, mix=None):
+    # init classifier and window
+    if classifier == 'PLCA':
+        classifier = PLCA
+    elif classifier == 'SIPLCA':
+        classifier = SIPLCA
+    elif classifier == 'SIPLCA2':
+        classifier = SIPLCA2
+    else:
+        raise NameError('So sorry but I didn\'t recognize that classifier. ' \
+            'Supported classifiers are \'PLCA\', \'SIPLCA\', and \'SIPLCA2\'.')
 
     # resynthesized signal goes here
     y = []
@@ -294,17 +357,18 @@ def resynth_source(s, mix=None):
     # for each channel
     for ci in range(len(s.fit)):
 
-        W = s.fit[ci].w
-        Z = s.fit[ci].z
-        H = s.fit[ci].h
+        # reconstruct full mix
+        WZH_mix = classifier.reconstruct(mix.fit[ci].w, mix.fit[ci].z, mix.fit[ci].h)
+
+        # reconstruct source
+        WZH = classifier.reconstruct(s.fit[ci].w, s.fit[ci].z, s.fit[ci].h)
 
         if mix:
-            fn = mix.F[ci].X / (mix.fit[ci].w.dot(
-                np.diag(mix.fit[ci].z)).dot(mix.fit[ci].h))
-            tf = (W.dot(np.diag(Z)).dot(H)) * fn
+            fn = mix.F[ci].X / WZH_mix
+            tf = WZH * fn
 
         else:
-            tf = (W.dot(np.diag(Z)).dot(H))
+            tf = WZH
 
         sig = mix.F[ci].inverse(tf, pvoc=False)  # note: use phase from original
         sig = np.atleast_1d(sig / (sig.max() + .005))  # normalize
@@ -313,7 +377,7 @@ def resynth_source(s, mix=None):
 
     return y
 
-def write(sources, mix=None):
+def write2(sources, classifier='PLCA', mix=None):
 
     # create save folder
     foldername = 'test'
@@ -326,15 +390,13 @@ def write(sources, mix=None):
         print '\nresynthesizing s{0}, {1}...'.format(si, s.name)
 
         # call resynth on source
-        y = resynth_source(s, mix=mix)
+        y = resynth_source2(s, classifier=classifier, mix=mix)
 
         # write to disk
         filename = foldername + '/s{0}-{1}.wav'.format(si, s.name)
         wavwrite((np.array([y[0],y[1]])).transpose(), filename, s.sr) # FUCKING: hardcoded channels
 
-#-----------------------------------------------------------------------------#
-
-def write_info(sources_info, mix_info, params):
+def write_info2(sources_info, mix_info, params):
 
     # create save folder
     foldername = 'test'
