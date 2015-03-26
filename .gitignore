@@ -1,5 +1,8 @@
 *.py[co]
 
+# top level init
+__init__.py
+
 # Packages
 *.egg
 *.egg-info
