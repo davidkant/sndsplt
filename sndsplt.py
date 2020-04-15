@@ -1,7 +1,7 @@
 """the module."""
 
-import bregwoman
-from bregwoman.suite import *
+import bregman
+from bregman.suite import *
 import numpy as np
 
 """
