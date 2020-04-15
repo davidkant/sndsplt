@@ -370,7 +370,7 @@ def resynth_source(s, classifier='PLCA', mix=None):
             tf = WZH
 
         sig = mix.F[ci].inverse(tf, pvoc=False)  # note: use phase from original
-        sig = np.atleast_1d(sig / (sig.max() + .005))  # normalize
+        sig = np.atleast_1d(sig / (sig.max() * 0.95))  # normalize
 
         y += [sig]
 
