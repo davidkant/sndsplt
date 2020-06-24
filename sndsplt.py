@@ -395,6 +395,33 @@ def write(sources, classifier='PLCA', mix=None, regionname='', foldername='test'
         wavwrite((np.array([y[0],y[1]])).transpose(), filename, s.sr)
         # FUCKING: hardcoded channels
 
+def write_components(sources, classifier='PLCA', mix=None, regionname='', foldername='test'):
+
+    # create save folder
+    if not os.path.exists(foldername): os.makedirs(foldername)
+
+    # resynthesize Smaragdis style - the band
+    for si,s in enumerate(sources):
+
+        # tell me about it
+        print '\nresynthesizing s{0}, {1} component-wise...'.format(si, s.name)
+
+        # loop through components
+        for ni in range(s.num_components):
+
+            # call resynth on source
+            y = resynth_source(s, classifier=classifier, mix=mix, component=ni)
+
+            # # write to disk
+            # filename = foldername + '/s{0}-{1}-{2}.wav'.format(si, s.name, ni)
+            # wavwrite((np.array(y)).transpose(), filename, s.sr)
+
+            # write to disk
+            filename = foldername + '/' + regionname + '_s{0}-{1}-{2}-L.wav'.format(si, s.name, ni)
+            wavwrite((np.array(y[0])).transpose(), filename, s.sr)
+            filename = foldername + '/' + regionname + '_s{0}-{1}-{2}-R.wav'.format(si, s.name, ni)
+            wavwrite((np.array(y[1])).transpose(), filename, s.sr)
+
 def write_info(sources_info, mix_info, params, regionname='', foldername='test'):
 
     # create save folder
