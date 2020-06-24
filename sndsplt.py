@@ -337,7 +337,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
 
     return sources, residual, mix
 
-def resynth_source(s, classifier='PLCA', mix=None):
+def resynth_source(s, classifier='PLCA', mix=None, component=None, domain='time', norm=5e-06):
 
     # init classifier and window
     if classifier == 'PLCA':
@@ -369,8 +369,17 @@ def resynth_source(s, classifier='PLCA', mix=None):
         else:
             tf = WZH
 
-        sig = mix.F[ci].inverse(tf, pvoc=False)  # note: use phase from original
-        sig = np.atleast_1d(sig / (sig.max() * 0.95))  # normalize
+        if domain == 'time':
+            sig = mix.F[ci].inverse(tf, pvoc=False)  # note: use phase from original
+            if norm is not None:
+                sig = np.atleast_1d(sig / norm)
+            else:
+                sig = np.atleast_1d(sig / sig.max() * 0.95)  # normalize
+            if np.max(sig) >= 1.0:
+                print('Cipped! @ampliutde {}'.format(np.max(sig)))
+
+        elif domain == 'freq':
+            sig = tf
 
         y += [sig]
 
