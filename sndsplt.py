@@ -376,10 +376,9 @@ def resynth_source(s, classifier='PLCA', mix=None):
 
     return y
 
-def write(sources, classifier='PLCA', mix=None):
+def write(sources, classifier='PLCA', mix=None, regionname='', foldername='test'):
 
     # create save folder
-    foldername = 'test'
     if not os.path.exists(foldername): os.makedirs(foldername)
 
     # resynthesize Smaragdis style - the band
@@ -392,17 +391,17 @@ def write(sources, classifier='PLCA', mix=None):
         y = resynth_source(s, classifier=classifier, mix=mix)
 
         # write to disk
-        filename = foldername + '/s{0}-{1}.wav'.format(si, s.name)
-        wavwrite((np.array([y[0],y[1]])).transpose(), filename, s.sr) # FUCKING: hardcoded channels
+        filename = foldername + '/' + regionname + '_s{0}-{1}.wav'.format(si, s.name)
+        wavwrite((np.array([y[0],y[1]])).transpose(), filename, s.sr)
+        # FUCKING: hardcoded channels
 
-def write_info(sources_info, mix_info, params):
+def write_info(sources_info, mix_info, params, regionname='', foldername='test'):
 
     # create save folder
-    foldername = 'test'
     if not os.path.exists(foldername): os.makedirs(foldername)
 
     # write info file
-    f = open(foldername + '/info.txt', 'w')
+    f = open(foldername + '/' + regionname + '_info.txt', 'w')
     f.write(str(sources_info) + '\n\n')
     f.write(str(mix_info) + '\n\n')
     f.write(str(params) + '\n\n')
