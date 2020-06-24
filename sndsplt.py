@@ -360,7 +360,15 @@ def resynth_source(s, classifier='PLCA', mix=None, component=None, domain='time'
         WZH_mix = classifier.reconstruct(mix.fit[ci].w, mix.fit[ci].z, mix.fit[ci].h)
 
         # reconstruct source
-        WZH = classifier.reconstruct(s.fit[ci].w, s.fit[ci].z, s.fit[ci].h)
+        if component is None:
+
+            # resynthesize all components
+            WZH = classifier.reconstruct(s.fit[ci].w, s.fit[ci].z, s.fit[ci].h)
+
+        else:
+
+            # resynthesize one component
+            WZH = classifier.reconstruct(s.fit[ci].w[:,component:component+1], s.fit[ci].z[component], s.fit[ci].h[component:component+1,:])
 
         if mix:
             fn = mix.F[ci].X / WZH_mix
