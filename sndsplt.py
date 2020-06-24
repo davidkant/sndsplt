@@ -25,8 +25,8 @@ dk
 
 """
 
-def train(sources_info, classifier='PLCA', win=(5,12), iters=25, 
-    feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann', 
+def train(sources_info, classifier='PLCA', win=(5,12), iters=25,
+    feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann',
     priors=None, verbose=True):
 
     """Train.
@@ -54,7 +54,7 @@ def train(sources_info, classifier='PLCA', win=(5,12), iters=25,
             'Supported classifiers are \'PLCA\', \'SIPLCA\', and \'SIPLCA2\'.')
 
     # tell me about it
-    if verbose: 
+    if verbose:
         print '\nTRAINING!'
         print 'classifier: {0}'.format(classifier)
         print 'window: {0}'.format(win)
@@ -98,7 +98,7 @@ def train(sources_info, classifier='PLCA', win=(5,12), iters=25,
 
             s.audiofile.append(Audiofile())
 
-            s.audiofile[ci].x = x[:,ci] 
+            s.audiofile[ci].x = x[:,ci]
             s.sr = sr
 
     #-------------------------------------------#
@@ -154,17 +154,17 @@ def train(sources_info, classifier='PLCA', win=(5,12), iters=25,
 
             s.train[ci].w, s.train[ci].z, s.train[ci].h, \
             s.train[ci].n, s.train[ci].r, s.train[ci].l = \
-                classifier.analyze(s.F[ci].X, s.num_components, niter=iters, 
+                classifier.analyze(s.F[ci].X, s.num_components, niter=iters,
                     win=win, **priors)
-    
+
     #-------------------------------------------#
 
     """return."""
 
     return sources
 
-def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25, 
-    feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann', 
+def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
+    feature='stft', nfft=8096, wfft=8096, nhop=4096, window='hann',
     priors=None, verbose=True):
 
     """Fit.
@@ -192,7 +192,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
             'Supported classifiers are \'PLCA\', \'SIPLCA\', and \'SIPLCA2\'.')
 
     # tell me about it
-    if verbose: 
+    if verbose:
         print '\nFITTING!'
         print 'classifier: {0}'.format(classifier)
         print 'window: {0}'.format(win)
@@ -230,7 +230,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
 
         mix.audiofile.append(Audiofile())
 
-        mix.audiofile[ci].x = x[:,ci] 
+        mix.audiofile[ci].x = x[:,ci]
         mix.sr = sr
 
     #-------------------------------------------#
@@ -281,7 +281,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
             mix.num_components
 
         # all source w's concatenated
-        W_trained = np.concatenate([s.train[ci].w for s in sources if 
+        W_trained = np.concatenate([s.train[ci].w for s in sources if
             s.num_components > 0], axis=1)
 
         # do not update the source components but do update the mix components
@@ -293,7 +293,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
 
         mix.fit[ci].w, mix.fit[ci].z, mix.fit[ci].h, \
             mix.fit[ci].n, mix.fit[ci].r, mix.fit[ci].l = \
-            classifier.analyze(mix.F[ci].X, total_num_components, niter=iters, 
+            classifier.analyze(mix.F[ci].X, total_num_components, niter=iters,
                 initW=W_trained, updateW=W_update, win=win, **priors)
 
     #-------------------------------------------#
@@ -307,7 +307,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
     residual.num_components = mix.num_components
     residual.sr = mix.sr
 
-    # mix is now entire mix so let's call it that   
+    # mix is now entire mix so let's call it that
     mix.name = 'mix'
 
     for si,s in enumerate(sources + [residual]):
@@ -328,7 +328,7 @@ def fit(mix_info, sources, classifier='PLCA', win=(5,12), iters=25,
             s.fit[ci].z = mix.fit[ci].z[i:j]
             s.fit[ci].h = mix.fit[ci].h[i:j,:]
 
-            # w and h will have extra dims for SIPLA and 
+            # w and h will have extra dims for SIPLA and
             # SIPLCA2 but we don'thave to change the code
 
     #-------------------------------------------#
